@@ -1,15 +1,12 @@
-# Ativar o ambiente virtual (descomentar se necessário)
-# source C:/Users/JUAN.MARTINS/Portifolio/House_Sales_in_King_County_USA/.venv/Scripts/activate
-
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-import statsmodels.api as sm
 import numpy as np
-from yellowbrick.regressor import ResidualsPlot 
+import pickle
 from sklearn.metrics import mean_squared_error
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV, learning_curve
+import os
 
 # Carregar dados
 def load_data(filepath):
@@ -46,26 +43,29 @@ def train_and_evaluate(df):
     
     return model, X_test, y_test, y_pred
 
-# Plotar os resíduos
-def plot_residuals(model, X_train, y_train, X_test, y_test):
-    visualizer = ResidualsPlot(model)
-    visualizer.fit(X_train, y_train)
-    visualizer.score(X_test, y_test)
-    visualizer.show()
+# Salvar o modelo treinado
+def save_model(model, filepath):
+    with open(filepath, 'wb') as f:
+        pickle.dump(model, f)
+    print(f'Modelo salvo em {filepath}')
 
 # Função principal
 def main():
-    filepath = 'Data/kc_house_data.csv'
-    df = load_data(filepath)
+    data_filepath = 'Data/kc_house_data.csv'
+    model_filepath = 'Data/modelo.pkl'
+    
+    # Verificar se o diretório Data existe
+    if not os.path.exists('Data'):
+        os.makedirs('Data')
+    
+    df = load_data(data_filepath)
     
     plot_correlation_heatmap(df)
     
     model, X_test, y_test, y_pred = train_and_evaluate(df)
     
-    # Plotar resíduos
-    X_train, X_test, y_train, y_test = train_test_split(
-        df.drop('price', axis=1), df['price'], test_size=0.2, random_state=42)
-    plot_residuals(model, X_train.values, y_train.values, X_test.values, y_test.values)
+    # Salvar o modelo na pasta Data
+    save_model(model, model_filepath)
 
 # Executar o script principal
 if __name__ == "__main__":
